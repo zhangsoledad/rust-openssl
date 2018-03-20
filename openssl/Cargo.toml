@@ -23,6 +23,7 @@ lazy_static = "1"
 libc = "0.2"
 openssl-sys = { version = "0.9.28", path = "../openssl-sys" }
 
+
 [dev-dependencies]
 tempdir = "0.3"
 hex = "0.3"

@@ -2106,6 +2106,15 @@ extern "C" {
         cb: Option<PasswordCallback>,
         u: *mut c_void,
     ) -> *mut EVP_PKEY;
+    pub fn i2d_PKCS8PrivateKey_bio(
+        bio: *mut BIO,
+        pkey: *mut EVP_PKEY,
+        cipher: *const EVP_CIPHER,
+        kstr: *mut c_uchar,
+        klen: c_int,
+        cb: Option<PasswordCallback>,
+        u: *mut c_void,
+    ) -> c_int;
 
     pub fn EVP_PKEY_CTX_new(k: *mut EVP_PKEY, e: *mut ENGINE) -> *mut EVP_PKEY_CTX;
     pub fn EVP_PKEY_CTX_new_id(id: c_int, e: *mut ENGINE) -> *mut EVP_PKEY_CTX;

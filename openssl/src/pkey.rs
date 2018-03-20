@@ -255,6 +255,22 @@ where
         ffi::PEM_write_bio_PKCS8PrivateKey
     }
 
+    private_key_to_pem! {
+        /// Serializes the private key to a DER-encoded key type specific format.
+        ///
+        /// This corresponds to [`i2d_PKCS8PrivateKey_bio`].
+        ///
+        /// [`i2d_PKCS8PrivateKey_bio`]: https://www.openssl.org/docs/man1.0.2/crypto/i2d_PKCS8PrivateKey_bio.html
+        private_key_to_der_pkcs8,
+        /// Serializes the private key to a DER-encoded PKCS#8 encrypted key type specific format.
+        ///
+        /// This corresponds to [`i2d_PKCS8PrivateKey_bio`].
+        ///
+        /// [`i2d_PKCS8PrivateKey_bio`]: https://www.openssl.org/docs/man1.0.2/crypto/i2d_PKCS8PrivateKey_bio.html
+        private_key_to_der_pkcs8_passphrase,
+        ffi::i2d_PKCS8PrivateKey_bio
+    }
+
     to_der! {
         /// Serializes the private key to a DER-encoded key type specific format.
         ///
@@ -564,6 +580,16 @@ mod tests {
     }
 
     #[test]
+    fn test_to_der_password() {
+        let rsa = Rsa::generate(2048).unwrap();
+        let pkey = PKey::from_rsa(rsa).unwrap();
+        let der = pkey.private_key_to_der_pkcs8_passphrase(Cipher::aes_128_cbc(), b"foobar")
+            .unwrap();
+        PKey::private_key_from_pkcs8_passphrase(&der, b"foobar").unwrap();
+        assert!(PKey::private_key_from_pkcs8_passphrase(&der, b"fizzbuzz").is_err());
+    }
+
+    #[test]
     fn test_encrypted_pkcs8_passphrase() {
         let key = include_bytes!("../test/pkcs8.der");
         PKey::private_key_from_pkcs8_passphrase(key, b"mypass").unwrap();
@@ -617,6 +643,16 @@ mod tests {
         // the `PRIVATE KEY` or `PUBLIC KEY` strings.
         assert!(priv_key.windows(11).any(|s| s == b"PRIVATE KEY"));
         assert!(pub_key.windows(10).any(|s| s == b"PUBLIC KEY"));
+    }
+
+    #[test]
+    fn test_pkcs8_der() {
+        let key = include_bytes!("../test/key.pem");
+        let pk8_key = include_bytes!("../test/key.pk8");
+        let key = PKey::private_key_from_pem(key).unwrap();
+
+        let priv_key = key.private_key_to_der_pkcs8().unwrap();
+        assert_eq!(pk8_key.to_vec(), priv_key);
     }
 
     #[test]
